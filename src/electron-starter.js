@@ -1,12 +1,15 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, screen, Menu } = require('electron');
 const url = require('url');
 const path = require('path');
 
-function createWindow () {
+const createWindow = () => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     // init window option
-    const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+    const window = new BrowserWindow({
+
+        width: width / 1.25,
+        height: height / 1.25,
         webPreferences: {
             nodeIntegration: true
         }
@@ -19,8 +22,10 @@ function createWindow () {
         slashes: true
     });
 
-    win.loadURL(startUrl);
+    window.loadURL(startUrl);
 }
+
+Menu.setApplicationMenu(false);
 
 // electron setting finish end call create window
 app.whenReady().then(createWindow);
