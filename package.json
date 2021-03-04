@@ -13,9 +13,11 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "start": "nf start",
-    "export-mac": "npm run react-build && electron-builder -m",
-    "export-win": "npm run react-build && electron-builder -w",
-    "export-linux": "npm run react-build && electron-builder -l"
+    "build-installer-mac": "npm run react-build && electron-builder -m",
+    "build-installer-win": "npm run react-build && electron-builder -w",
+    "build-installer-linux": "npm run react-build && electron-builder -l",
+    "build-portable-win32": "electron-builder --win portable --ia32",
+    "build-portable-win64": "electron-builder --win portable --x64"
   },
   "build": {
     "extends": null,
