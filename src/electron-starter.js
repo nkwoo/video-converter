@@ -1,15 +1,19 @@
-const { app, BrowserWindow, screen, Menu } = require('electron');
+const { app, BrowserWindow, Tray, Menu } = require('electron');
 const url = require('url');
 const path = require('path');
 
+let tray = null;
+
 const createWindow = () => {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
     // init window option
     const window = new BrowserWindow({
-
-        width: width / 1.25,
-        height: height / 1.25,
+        width: 600,
+        height: 600,
+        resizable: false,
+        maximizable: false,
+        center: true,
+        autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: true
         }
@@ -23,9 +27,55 @@ const createWindow = () => {
     });
 
     window.loadURL(startUrl);
+
+    // window.webContents.openDevTools();
+
+    window.on('minimize',function(event){
+        event.preventDefault();
+        window.hide();
+    });
+
+    window.on('close', function(e) {
+        const choice = require('electron').dialog.showMessageBoxSync(this,
+            {
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Confirm',
+                message: 'Are you sure you want to quit?'
+            });
+        if (choice === 1) {
+            e.preventDefault();
+        }
+    });
+
+    setTimeout(() => {
+        tray = new Tray(path.join(__dirname, '/../build/favicon.ico'));
+        // sets tray icon image
+        const contextMenu = Menu.buildFromTemplate([
+            {
+                label: 'Show App',
+                click: () => window.show()
+            },
+            {
+                label: 'Quit',
+                click: () => {
+                    app.isQuiting = true;
+                    app.quit();
+                }
+            }
+        ]);
+
+        tray.setContextMenu(contextMenu);
+
+        tray.on('double-click', () => {
+            window.show();
+        });
+
+        }, 0
+    );
 }
 
-Menu.setApplicationMenu(false);
+// Menu.setApplicationMenu(false);
 
 // electron setting finish end call create window
 app.whenReady().then(createWindow);
