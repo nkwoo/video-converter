@@ -1,27 +1,60 @@
-import React from "react";
-import {Redirect} from "react-router-dom";
-class Main extends React.Component<any, any> {
-    state = {
-        redirect: false
+import React, {ReactNode} from 'react';
+import {Redirect} from 'react-router-dom';
+import './Main.css';
+
+type MainProps = {}
+
+type MainState = {
+    redirect: boolean;
+}
+
+class Main extends React.Component<MainProps, MainState> {
+    private _isMounted: boolean = false;
+
+    constructor(props: MainProps) {
+        super(props);
+
+        if (this._isMounted) {
+            this.setState({
+                redirect: false
+            });
+        }
     }
 
-    init () {
+    init() {
         setTimeout(() => {
-            this.setState({redirect: true});
-        }, 3000);
+            if (this._isMounted) {
+                this.setState({redirect: true});
+            }
+        }, 2000);
     }
 
-    render() {
+    render(): ReactNode {
         this.init();
-        const {redirect} = this.state;
+        if (this._isMounted) {
+            const {redirect} = this.state;
 
-        if (redirect) {
-            return <Redirect to="/upload"/>
+            if (redirect) {
+                return <Redirect to="/upload"/>
+            }
         }
 
         return (
-            <div>Hello!</div>
+            <div className="wrap">
+                <div className="center">
+                    <span>Video Converter</span>
+                    <div className="loader" />
+                </div>
+            </div>
         );
+    }
+
+    componentDidMount() {
+        this._isMounted = true;
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 }
 
