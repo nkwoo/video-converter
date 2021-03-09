@@ -1,8 +1,25 @@
-const { app, BrowserWindow, Tray, Menu } = require('electron');
+const { app, BrowserWindow, Tray, Menu, Notification } = require('electron');
 const url = require('url');
 const path = require('path');
 
 let tray = null;
+let firstAppMinimize = true;
+
+const showNotification = (title, body, clickEvent = undefined) => {
+    const notificationOption = {
+        title: title,
+        body: body
+    }
+
+    const notification = new Notification(notificationOption);
+
+    if (clickEvent !== undefined) {
+        notification.on("click", clickEvent);
+    }
+
+    notification.show();
+}
+
 
 const createWindow = () => {
 
@@ -30,26 +47,38 @@ const createWindow = () => {
 
     // window.webContents.openDevTools();
 
-    window.on('minimize',function(event){
-        event.preventDefault();
-        window.hide();
-    });
+    // window.on('minimize',function(event){
+    //     event.preventDefault();
+    //     window.hide();
+    // });
 
     window.on('close', function(e) {
-        const choice = require('electron').dialog.showMessageBoxSync(this,
-            {
+        if (!app.isQuiting) {
+            e.preventDefault();
+            window.hide();
+
+            if (firstAppMinimize) {
+                showNotification("앱이 최소화 되었습니다.", "앱을 다시 열려면 작업 표시줄을 확인해주세요!");
+                firstAppMinimize = false;
+            }
+        } else {
+            window.show();
+
+            const choice = require('electron').dialog.showMessageBoxSync(window, {
                 type: 'question',
                 buttons: ['Yes', 'No'],
                 title: 'Confirm',
                 message: 'Are you sure you want to quit?'
             });
-        if (choice === 1) {
-            e.preventDefault();
+            if (choice === 1) {
+                e.preventDefault();
+            }
         }
     });
 
     setTimeout(() => {
         tray = new Tray(path.join(__dirname, '/../build/favicon.ico'));
+
         // sets tray icon image
         const contextMenu = Menu.buildFromTemplate([
             {
@@ -70,9 +99,7 @@ const createWindow = () => {
         tray.on('double-click', () => {
             window.show();
         });
-
-        }, 0
-    );
+    }, 0);
 }
 
 // Menu.setApplicationMenu(false);
