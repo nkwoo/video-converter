@@ -52,7 +52,7 @@ const createTray = () => {
 const createWindow = () => {
 
     // init window option
-    const window = new BrowserWindow({
+    window = new BrowserWindow({
         width: 600,
         height: 600,
         minWidth: 600,
