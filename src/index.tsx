@@ -4,6 +4,13 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import {HashRouter} from "react-router-dom";
+import {IpcRenderer} from "electron";
+
+declare global {
+    interface Window {
+        ipcRenderer: IpcRenderer
+    }
+}
 
 ReactDOM.render(
     <React.StrictMode>

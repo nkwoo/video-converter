@@ -1,5 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, Notification } = require('electron');
-const url = require('url');
+const { app, BrowserWindow, Tray, Menu, Notification, ipcMain } = require('electron');
 const path = require('path');
 
 let tray = null;
@@ -27,79 +26,114 @@ const createWindow = () => {
     const window = new BrowserWindow({
         width: 600,
         height: 600,
-        resizable: false,
-        maximizable: false,
+        minWidth: 600,
+        minHeight: 600,
         center: true,
         autoHideMenuBar: true,
+        frame: false,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: false,
+            preload: __dirname + '/preload.js'
         }
     });
 
-    // react build link generation
-    const startUrl = process.env.ELECTRON_START_URL || url.format({
-        pathname: path.join(__dirname, '/../build/index.html'),
-        protocol: 'file:',
-        slashes: true
-    });
+    window.loadFile(path.join(__dirname, '/../public/loading.html'));
 
-    window.loadURL(startUrl);
+    window.once('show', () => {
+        // react build link generation
+        const url = new URL(path.join(__dirname, '/../build/index.html'));
+        url.protocol = 'file:';
 
-    // window.webContents.openDevTools();
+        const startUrl = process.env.ELECTRON_START_URL || url.toString();
 
-    // window.on('minimize',function(event){
-    //     event.preventDefault();
-    //     window.hide();
-    // });
+        setTimeout(() => {
+            window.loadURL(startUrl);
+        }, 1000);
 
-    window.on('close', function(e) {
-        if (!app.isQuiting) {
-            e.preventDefault();
-            window.hide();
+        // window.webContents.openDevTools();
 
-            if (firstAppMinimize) {
-                showNotification("앱이 최소화 되었습니다.", "앱을 다시 열려면 작업 표시줄을 확인해주세요!");
-                firstAppMinimize = false;
+        /**
+         enum ClickEventType {
+            Minimize,
+            Maximize,
+            UnMaximize,
+            Close
+        }
+         */
+        ipcMain.on('mainAppTitleEvent', (event, res) => {
+            switch (res) {
+                case 0:
+                    window.minimize();
+                    break;
+                case 1:
+                    window.maximize();
+                    event.sender.send('updateMaximize', true);
+                    break;
+                case 2:
+                    window.unmaximize();
+                    event.sender.send('updateMaximize', false);
+                    break;
+                case 3:
+                    window.close();
+                    break;
             }
-        } else {
-            window.show();
+        });
 
-            const choice = require('electron').dialog.showMessageBoxSync(window, {
-                type: 'question',
-                buttons: ['Yes', 'No'],
-                title: 'Confirm',
-                message: 'Are you sure you want to quit?'
-            });
-            if (choice === 1) {
+        window.on('maximize', () => window.webContents.send('updateMaximize', true));
+
+        window.on('unmaximize', () => window.webContents.send('updateMaximize', false));
+
+        window.on('close', function(e) {
+            if (!app.isQuiting) {
                 e.preventDefault();
-            }
-        }
-    });
+                window.hide();
 
-    setTimeout(() => {
-        tray = new Tray(path.join(__dirname, '/../build/favicon.ico'));
+                if (firstAppMinimize) {
+                    showNotification("앱이 최소화 되었습니다.", "앱을 다시 열려면 작업 표시줄을 확인해주세요!");
+                    firstAppMinimize = false;
+                }
+            } else {
+                window.show();
 
-        // sets tray icon image
-        const contextMenu = Menu.buildFromTemplate([
-            {
-                label: 'Show App',
-                click: () => window.show()
-            },
-            {
-                label: 'Quit',
-                click: () => {
-                    app.isQuiting = true;
-                    app.quit();
+                const choice = require('electron').dialog.showMessageBoxSync(window, {
+                    type: 'question',
+                    buttons: ['Yes', 'No'],
+                    title: 'Confirm',
+                    message: 'Are you sure you want to quit?'
+                });
+                if (choice === 1) {
+                    e.preventDefault();
                 }
             }
-        ]);
-
-        tray.setContextMenu(contextMenu);
-
-        tray.on('double-click', () => {
-            window.show();
         });
-    }, 0);
+
+        setTimeout(() => {
+            tray = new Tray(path.join(__dirname, '/../build/favicon.ico'));
+
+            // sets tray icon image
+            const contextMenu = Menu.buildFromTemplate([
+                {
+                    label: 'Show App',
+                    click: () => window.show()
+                },
+                {
+                    label: 'Quit',
+                    click: () => {
+                        app.isQuiting = true;
+                        app.quit();
+                    }
+                }
+            ]);
+
+            tray.setContextMenu(contextMenu);
+
+            tray.on('double-click', () => {
+                window.show();
+            });
+        }, 0);
+    });
+
+    window.show();
 }
 
 // Menu.setApplicationMenu(false);
