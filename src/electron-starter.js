@@ -1,8 +1,14 @@
 const { app, BrowserWindow, Tray, Menu, Notification, ipcMain } = require('electron');
 const path = require('path');
+const url = require('url');
 
-let tray = null;
+let tray = undefined;
+let window = undefined;
 let firstAppMinimize = true;
+
+const getFilePath = (filePath) => {
+   return path.join(__dirname, (process.env.ELECTRON_START_URL ? '/../public' : '/../build') + filePath);
+}
 
 const showNotification = (title, body, clickEvent = undefined) => {
     const notificationOption = {
@@ -19,7 +25,30 @@ const showNotification = (title, body, clickEvent = undefined) => {
     notification.show();
 }
 
+const createTray = () => {
+    tray = new Tray(getFilePath('/favicon.ico'));
 
+    // sets tray icon image
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: '앱 열기',
+            click: () => window.show()
+        },
+        {
+            label: '종료',
+            click: () => {
+                app.isQuiting = true;
+                app.quit();
+            }
+        }
+    ]);
+
+    tray.on('double-click', () => {
+        window.show();
+    });
+
+    tray.setContextMenu(contextMenu);
+}
 const createWindow = () => {
 
     // init window option
@@ -37,14 +66,20 @@ const createWindow = () => {
         }
     });
 
-    window.loadFile(path.join(__dirname, '/../public/loading.html'));
+    window.loadFile(url.format({
+        pathname: getFilePath('/loading.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
 
     window.once('show', () => {
         // react build link generation
-        const url = new URL(path.join(__dirname, '/../build/index.html'));
-        url.protocol = 'file:';
 
-        const startUrl = process.env.ELECTRON_START_URL || url.toString();
+        const startUrl = process.env.ELECTRON_START_URL || url.format({
+            pathname: path.join(__dirname, '/../build/index.html'),
+            protocol: 'file:',
+            slashes: true
+        });
 
         setTimeout(() => {
             window.loadURL(startUrl);
@@ -109,31 +144,6 @@ const createWindow = () => {
                 }
             }
         });
-
-        setTimeout(() => {
-            tray = new Tray(path.join(__dirname, '/../build/favicon.ico'));
-
-            // sets tray icon image
-            const contextMenu = Menu.buildFromTemplate([
-                {
-                    label: '앱 열기',
-                    click: () => window.show()
-                },
-                {
-                    label: '종료',
-                    click: () => {
-                        app.isQuiting = true;
-                        app.quit();
-                    }
-                }
-            ]);
-
-            tray.setContextMenu(contextMenu);
-
-            tray.on('double-click', () => {
-                window.show();
-            });
-        }, 0);
     });
 
     window.show();
@@ -142,7 +152,10 @@ const createWindow = () => {
 // Menu.setApplicationMenu(false);
 
 // electron setting finish end call create window
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    createTray();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
