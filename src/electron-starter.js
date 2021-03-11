@@ -76,6 +76,9 @@ const createWindow = () => {
                 case 3:
                     window.close();
                     break;
+                default:
+                    console.log("How did you get in?");
+                    break;
             }
         });
 
@@ -97,9 +100,9 @@ const createWindow = () => {
 
                 const choice = require('electron').dialog.showMessageBoxSync(window, {
                     type: 'question',
-                    buttons: ['Yes', 'No'],
-                    title: 'Confirm',
-                    message: 'Are you sure you want to quit?'
+                    buttons: ['예', '아니요'],
+                    title: '앱 종료',
+                    message: '프로그램을 종료하시겠습니까?'
                 });
                 if (choice === 1) {
                     e.preventDefault();
@@ -113,11 +116,11 @@ const createWindow = () => {
             // sets tray icon image
             const contextMenu = Menu.buildFromTemplate([
                 {
-                    label: 'Show App',
+                    label: '앱 열기',
                     click: () => window.show()
                 },
                 {
-                    label: 'Quit',
+                    label: '종료',
                     click: () => {
                         app.isQuiting = true;
                         app.quit();

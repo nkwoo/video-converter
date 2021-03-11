@@ -4,6 +4,7 @@
     -webkit-user-select: none;
     user-select: none;
     -webkit-app-region: drag;
+    background: #1a7ebf;
 }
 
 .title-frame .title {
