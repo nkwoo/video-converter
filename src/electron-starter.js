@@ -66,11 +66,7 @@ const createWindow = () => {
         }
     });
 
-    window.loadFile(url.format({
-        pathname: getFilePath('/loading.html'),
-        protocol: 'file:',
-        slashes: true
-    }));
+    window.loadFile(getFilePath('/loading.html'));
 
     window.once('show', () => {
         // react build link generation

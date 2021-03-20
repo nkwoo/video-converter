@@ -40,11 +40,9 @@ class Main extends React.Component<MainProps, MainState> {
         }
 
         return (
-            <div className="wrap">
-                <div className="center">
-                    <span>Video Converter</span>
-                    <div className="loader" />
-                </div>
+            <div className="center">
+                <span>Video Converter</span>
+                <div className="loader" />
             </div>
         );
     }

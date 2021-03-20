@@ -6,6 +6,15 @@ import Upload from "./component/upload/Upload";
 import RouterNotFound from "./component/exception/RouterNotFound";
 import TitleFrame from "./component/header/TitleFrame";
 import isElectron from "is-electron";
+import Styled from 'styled-components';
+
+const Wrap = Styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: ${isElectron() ? 'calc(100% - 25px)' : '100%'};  
+`;
 
 class App extends React.Component<any, any> {
 
@@ -13,13 +22,15 @@ class App extends React.Component<any, any> {
         return (
             <>
                 {isElectron() &&
-                <TitleFrame />
+                <TitleFrame/>
                 }
-                <Switch>
-                    <Route path="/" exact component={Main}/>
-                    <Route path="/upload" component={Upload}/>
-                    <Route component={RouterNotFound}/>
-                </Switch>
+                <Wrap>
+                    <Switch>
+                        <Route path="/" exact component={Main}/>
+                        <Route path="/upload" component={Upload}/>
+                        <Route component={RouterNotFound}/>
+                    </Switch>
+                </Wrap>
             </>
         );
     }
